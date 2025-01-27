@@ -6,6 +6,7 @@
         using System.IO;
         using System.IO.Compression;
         using System;
+        using System.Text;
 
         [ContentImporter(".json", DisplayName = "Json Importer - PalmForest", DefaultProcessor = "JsonCompressorProcessor")]
         public class JsonImporter : ContentImporter<string>
@@ -25,16 +26,15 @@
                 // Log the process for debugging
                 context.Logger.LogMessage("Compressing and obfuscating JSON content...");
 
-                // Compress the JSON using Brotli
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
                 byte[] compressedData;
+
+                // Compress using Deflate compression
                 using (var memoryStream = new MemoryStream())
                 {
-                    using (var brotliStream = new BrotliStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+                    using (var compressionStream = new DeflateStream(memoryStream, CompressionLevel.Optimal))
                     {
-                        using (var writer = new StreamWriter(brotliStream))
-                        {
-                            writer.Write(input);
-                        }
+                        compressionStream.Write(inputBytes, 0, inputBytes.Length);
                     }
                     compressedData = memoryStream.ToArray();
                 }
